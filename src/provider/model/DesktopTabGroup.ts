@@ -173,10 +173,12 @@ export class DesktopTabGroup implements DesktopEntity {
     }
 
     public applyOverride<K extends keyof EntityState>(property: K, value: EntityState[K]): Promise<void> {
+        console.log('-------- applyOverride.');
         return this.updateWindows(window => window.applyOverride(property, value));
     }
 
     public resetOverride(property: keyof EntityState): Promise<void> {
+        console.log('-------- resetOverride.');
         return this.updateWindows(window => window.resetOverride(property));
     }
 
@@ -337,14 +339,17 @@ export class DesktopTabGroup implements DesktopEntity {
     }
 
     public async addTab(tab: DesktopWindow): Promise<void> {
+        console.log('========= addTab.');
         await this.addTabInternal(tab, true);
     }
 
     public async addTabAt(tab: DesktopWindow, index: number): Promise<void> {
+        console.log(`========= addTabAt ${index}.`);
         await this.addTabInternal(tab, true, index);
     }
 
     public async addTabs(tabs: DesktopWindow[], activeTabId?: WindowIdentity): Promise<void> {
+        console.log('========= addTabs.');
         const allWindows: DesktopWindow[] = tabs.concat(this._window);
         const firstTab: DesktopWindow = tabs.shift()!;
         const activeTab: DesktopWindow = (activeTabId && this._model.getWindow(activeTabId)) || firstTab;
@@ -576,6 +581,7 @@ export class DesktopTabGroup implements DesktopEntity {
     }
 
     private updateBounds(): void {
+        console.log('========= updateBounds ====.');
         const activeTab = this.activeTab;
         if (!activeTab) {
             console.warn(`No tabs for group ${this.id}`, new Error());
@@ -596,6 +602,7 @@ export class DesktopTabGroup implements DesktopEntity {
     }
 
     private updateWindows(action: (window: DesktopWindow) => Promise<void>): Promise<void> {
+        console.log('-------- updateWindows.');
         const promises: Promise<void>[] = this._tabs.map(action);
         promises.concat(action(this._window));
 
@@ -603,6 +610,7 @@ export class DesktopTabGroup implements DesktopEntity {
     }
 
     private async addTabInternal(tab: DesktopWindow, setActive: boolean, index: number = this._tabs.length): Promise<void> {
+        console.log('========= addTabInternal.');
         let remove: Promise<void>|null = null;
         const existingGroup: DesktopTabGroup|null = tab.tabGroup;
         if (existingGroup === this) {
@@ -642,12 +650,14 @@ export class DesktopTabGroup implements DesktopEntity {
             });
 
             // Reduce size of app window by size of tabstrip
+            console.log('========= Reduce size of app window.');
             const center: Point = {x: tabState.center.x, y: tabState.center.y + (this._config.height / 2)};
             const halfSize: Point = {x: tabState.halfSize.x, y: tabState.halfSize.y - (this._config.height / 2)};
             await tab.applyProperties({center, halfSize, frame: false});
         } else {
             // Delay to allow other async operations to jump ahead in the queue. Specifically, any pending boundsChanging events
             // should be processed before continuing.
+            console.log('========= _tabs.length not equals 1.');
             await new Promise(res => setTimeout(res, 10));
             // If the target window/group is in the process of being moved, we delay the rest of the operation until we receive
             // a bounds changed and update the currentState. This should serve as a fix/mitigation for SERVICE-360.
@@ -675,6 +685,7 @@ export class DesktopTabGroup implements DesktopEntity {
         this.sendTabEvent(tab, event);
 
         if (!setActive) {
+            console.log('========= not setActive.');
             await tab.applyProperties({hidden: true});
         } else {
             await this.switchTab(tab);
@@ -754,12 +765,14 @@ export class DesktopTabGroup implements DesktopEntity {
     }
 
     private async updateGroupConstraints(): Promise<void> {
+        console.log('========= updateGroupConstraints.');
         const result: Point<ResizeConstraint> = {
             x: {minSize: 0, maxSize: Number.MAX_SAFE_INTEGER, resizableMin: true, resizableMax: true},
             y: {minSize: 0, maxSize: Number.MAX_SAFE_INTEGER, resizableMin: true, resizableMax: true}
         };
 
         for (const tab of this.tabs) {
+            console.log('========= for each tab.');
             let orientation: keyof typeof result;
             for (orientation in result) {
                 if (result.hasOwnProperty(orientation)) {

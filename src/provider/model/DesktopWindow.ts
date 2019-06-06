@@ -833,6 +833,9 @@ export class DesktopWindow implements DesktopEntity {
     }
 
     private async updateState(delta: Partial<EntityState>, origin: ActionOrigin): Promise<void> {
+        console.log('========= updateState ====.');
+        console.log(delta);
+        console.log(origin);
         const actions: Promise<void>[] = [];
 
         if (origin !== ActionOrigin.APPLICATION) {
@@ -888,6 +891,7 @@ export class DesktopWindow implements DesktopEntity {
         Object.assign(this._currentState, delta);
 
         // Apply changes to the window (unless we're reacting to an external change that has already happened)
+        console.log('========= Apply changes to the window ====.');
         if (origin !== ActionOrigin.APPLICATION) {
             const window = this._window;
             const {center, halfSize, state, hidden, resizeConstraints, ...options} = delta;
@@ -917,7 +921,9 @@ export class DesktopWindow implements DesktopEntity {
             }
 
             // Apply bounds
+            console.log('========= Apply bounds ====.');
             if (center || halfSize) {
+                console.log('========= Real Apply bounds ====.');
                 const state: EntityState = this._currentState;
                 let newCenter = center || state.center, newHalfSize = halfSize || state.halfSize;
 
